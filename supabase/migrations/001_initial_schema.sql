@@ -196,6 +196,12 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('photos', 'photos', TRUE)
 ON CONFLICT (id) DO NOTHING;
 
+-- Drop existing storage policies if re-running
+DROP POLICY IF EXISTS "Public logo access" ON storage.objects;
+DROP POLICY IF EXISTS "Auth upload logos" ON storage.objects;
+DROP POLICY IF EXISTS "Auth update logos" ON storage.objects;
+DROP POLICY IF EXISTS "Auth delete logos" ON storage.objects;
+
 -- Allow public read access to logo and photo files
 CREATE POLICY "Public logo access"
   ON storage.objects FOR SELECT
