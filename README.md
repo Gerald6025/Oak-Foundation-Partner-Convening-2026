@@ -1,4 +1,4 @@
-# Oak Foundation Partner Convening 2026 — Registration & Attendance Platform
+# OAK Zimbabwe Partner Gathering — Registration & Attendance Platform
 
 > **Event:** OAK Partner Convening · 9–11 November 2026 · Cresta Lodge, Msasa, Harare  
 > **Built by:** Uncommon.org Students · Software Engineering & Product Design tracks
@@ -10,14 +10,13 @@ A live web platform for the OAK Zimbabwe Foundation Partner Gathering handling:
 - **Check-in** — Camera-based QR scanning with live headcount
 - **Programme** — Day-by-day event schedule
 - **Partner Directory** — Partner organisations with links
-- **Live Documentation & Gallery** — Session notes, takeaways, photo gallery, and resource materials
 
 ## 🛠 Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Next.js 16 (App Router) + TypeScript |
-| Styling | Tailwind CSS v4 + Chillax typography |
+| Frontend | Next.js 14 (App Router) + TypeScript |
+| Styling | Tailwind CSS v4 |
 | Backend | Supabase (Postgres + Auth + Storage) |
 | QR Generation | `qrcode.react` |
 | QR Scanning | `html5-qrcode` (browser camera) |
@@ -33,8 +32,8 @@ A live web platform for the OAK Zimbabwe Foundation Partner Gathering handling:
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/Gerald6025/Oak-Foundation-Partner-Convening-2026.git
-cd Oak-Foundation-Partner-Convening-2026
+git clone <repo-url>
+cd OAK
 npm install
 ```
 
@@ -87,19 +86,18 @@ src/
 │   ├── page.tsx              # Landing page
 │   ├── register/page.tsx     # Registration form
 │   ├── pass/[id]/page.tsx    # Attendee QR pass
-│   ├── programme/page.tsx    # Public programme & documentation
+│   ├── programme/page.tsx    # Public programme
 │   ├── partners/page.tsx     # Partner directory
-│   ├── gallery/page.tsx      # Photo gallery
 │   ├── admin/
 │   │   ├── login/            # Admin login
 │   │   ├── dashboard/        # Live headcount
 │   │   ├── scanner/          # QR check-in scanner
+│   │   └── attendees/        # Attendee management
 │   └── api/
 │       ├── register/         # Registration endpoint
 │       └── check-in/         # Check-in endpoint
 ├── components/
-│   ├── gallery/PhotoGallery.tsx  # Gallery with upload modal
-│   └── layout/                   # Header, BottomNav, AppShell
+│   └── layout/               # Header, BottomNav, AppShell
 ├── lib/
 │   ├── supabase/             # Supabase client utilities
 │   ├── types.ts              # TypeScript interfaces
