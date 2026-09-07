@@ -3,7 +3,7 @@
 > **Event:** OAK Partner Convening · 9–11 November 2026 · Cresta Lodge, Msasa, Harare  
 > **Built by:** Uncommon.org Students · Software Engineering & Product Design tracks
 
-## 🌿 Overview
+##  Overview
 
 A live web platform for the OAK Zimbabwe Foundation Partner Gathering handling:
 - **Registration** — Online form with QR code generation (`OAK-2026-XXXX-XXXX` format)
@@ -11,7 +11,7 @@ A live web platform for the OAK Zimbabwe Foundation Partner Gathering handling:
 - **Programme** — Day-by-day event schedule
 - **Partner Directory** — Partner organisations with links
 
-## 🛠 Tech Stack
+##  Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
@@ -22,7 +22,7 @@ A live web platform for the OAK Zimbabwe Foundation Partner Gathering handling:
 | QR Scanning | `html5-qrcode` (browser camera) |
 | Hosting | Vercel |
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 
@@ -106,7 +106,7 @@ src/
 └── middleware.ts              # Auth guard
 ```
 
-## 🔒 Security
+## Security
 
 - **Row Level Security (RLS)** enabled on all tables
 - `attendees` table has **no public SELECT policy** — personal data never leaks
@@ -114,7 +114,7 @@ src/
 - Public pages only show names, organisations, and QR codes
 - Admin routes protected by Supabase Auth middleware
 
-## 📋 Database Schema
+##  Database Schema
 
 | Table | Purpose |
 |-------|---------|
@@ -124,7 +124,7 @@ src/
 | `programme_sessions` | Event schedule |
 | `documentation_posts` | Daily event documentation |
 
-## 👥 Team
+## Team
 
 - **Student Developers** — Software Engineering track @ Uncommon.org
 - **Student Designers** — Product Design track
@@ -132,4 +132,4 @@ src/
 
 ---
 
-*Built with ❤️ by Uncommon.org students for OAK Zimbabwe Foundation*
+
