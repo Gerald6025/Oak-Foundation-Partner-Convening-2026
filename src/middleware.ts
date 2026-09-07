@@ -6,13 +6,8 @@ export async function middleware(request: NextRequest) {
     request,
   })
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  // If Supabase credentials are not configured on Vercel, don't crash
-  if (!supabaseUrl || !supabaseAnonKey || !supabaseUrl.startsWith('http')) {
-    return supabaseResponse
-  }
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://aqmrezfbezflixqyqsto.supabase.co'
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_nMIRhPI41XbdzC8AL1yuOQ_nIiy5SUZ'
 
   try {
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {

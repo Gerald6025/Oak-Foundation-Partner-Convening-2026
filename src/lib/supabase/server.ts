@@ -1,10 +1,13 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
+const DEFAULT_URL = 'https://aqmrezfbezflixqyqsto.supabase.co'
+const DEFAULT_KEY = 'sb_publishable_nMIRhPI41XbdzC8AL1yuOQ_nIiy5SUZ'
+
 export async function createClient() {
   const cookieStore = await cookies()
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://aqmrezfbezflixqyqsto.supabase.co'
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy-anon-key'
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_KEY
 
   return createServerClient(url, key, {
     cookies: {
