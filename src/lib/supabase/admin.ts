@@ -6,12 +6,13 @@ import { createClient } from '@supabase/supabase-js'
  * Bypasses Row Level Security — never expose to the browser.
  */
 export function createAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://aqmrezfbezflixqyqsto.supabase.co'
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   const hasValidServiceKey = serviceKey && serviceKey !== 'your-service-role-key-here' && serviceKey.trim() !== ''
-  const key = hasValidServiceKey ? serviceKey : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const key = hasValidServiceKey ? serviceKey : (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy-anon-key')
 
   return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    url,
     key,
     {
       auth: {

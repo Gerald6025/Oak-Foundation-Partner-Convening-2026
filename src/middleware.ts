@@ -6,16 +6,22 @@ export async function middleware(request: NextRequest) {
     request,
   })
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  // If Supabase credentials are not configured on Vercel, don't crash
+  if (!supabaseUrl || !supabaseAnonKey || !supabaseUrl.startsWith('http')) {
+    return supabaseResponse
+  }
+
+  try {
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
         getAll() {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
           supabaseResponse = NextResponse.next({
@@ -26,38 +32,37 @@ export async function middleware(request: NextRequest) {
           )
         },
       },
+    })
+
+    // Refresh session
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    const isLoginPage = request.nextUrl.pathname === '/admin/login'
+    const isScannerPage = request.nextUrl.pathname === '/admin/scanner'
+
+    // Allow scanner page without auth (coordination team uses it at the door)
+    if (!isLoginPage && !isScannerPage && !user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/admin/login'
+      return NextResponse.redirect(url)
     }
-  )
 
-  // Refresh session
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  // Check if accessing admin routes (except login and scanner which we allow without auth for now)
-  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
-  const isLoginPage = request.nextUrl.pathname === '/admin/login'
-  const isScannerPage = request.nextUrl.pathname === '/admin/scanner'
-
-  // Allow scanner page without auth (coordination team uses it at the door)
-  if (isAdminRoute && !isLoginPage && !isScannerPage && !user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/admin/login'
-    return NextResponse.redirect(url)
-  }
-
-  // Redirect logged-in users away from login page
-  if (isLoginPage && user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/admin/dashboard'
-    return NextResponse.redirect(url)
+    // Redirect logged-in users away from login page to dashboard
+    if (isLoginPage && user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/admin/dashboard'
+      return NextResponse.redirect(url)
+    }
+  } catch (error) {
+    console.error('Middleware execution error:', error)
+    return supabaseResponse
   }
 
   return supabaseResponse
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/admin/:path*'],
 }
