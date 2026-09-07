@@ -44,13 +44,21 @@ export interface CheckInWithAttendee extends CheckIn {
 export interface Partner {
   id: string
   name: string
-  description: string | null
-  website_url: string | null
-  logo_url: string | null
-  display_order: number
-  is_sub_partner: boolean
-  parent_partner_id: string | null
-  created_at: string
+  acronym?: string
+  region?: string
+  tags?: string[]
+  since_year?: number | string
+  category?: string
+  contact_name?: string
+  contact_email?: string
+  contact_initials?: string
+  description?: string | null
+  website_url?: string | null
+  logo_url?: string | null
+  display_order?: number
+  is_sub_partner?: boolean
+  parent_partner_id?: string | null
+  created_at?: string
 }
 
 // ─── Programme ──────────────────────────────────────────────
