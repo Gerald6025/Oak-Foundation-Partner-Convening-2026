@@ -118,15 +118,41 @@ export function getSmtpTransporter() {
 /**
  * Helper to test SMTP connection during diagnostics
  */
-export async function verifySmtpConnection(): Promise<{ success: boolean; error?: string }> {
+export async function verifySmtpConnection(): Promise<{ success: boolean; error?: string; port?: number }> {
   const transporter = getSmtpTransporter()
   if (!transporter) {
-    return { success: false, error: 'SMTP credentials (SMTP_USER / SMTP_PASS) are not configured.' }
+    return { success: false, error: 'SMTP credentials (SMTP_USER / SMTP_PASS) are not configured in this environment.' }
   }
   try {
     await transporter.verify()
-    return { success: true }
+    return { success: true, port: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 465 }
   } catch (err: any) {
+    const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER
+    const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD
+    // Try port 587 fallback if default port 465 failed
+    if (!process.env.SMTP_HOST && smtpUser && smtpPass) {
+      try {
+        const fallbackTransporter = nodemailer.createTransport({
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          auth: {
+            user: smtpUser,
+            pass: smtpPass.replace(/\s+/g, ''),
+          },
+          connectionTimeout: 8000,
+          greetingTimeout: 8000,
+          socketTimeout: 10000,
+        })
+        await fallbackTransporter.verify()
+        return { success: true, port: 587 }
+      } catch (fallbackErr: any) {
+        return {
+          success: false,
+          error: `Port 465 error: ${err.message} | Port 587 error: ${fallbackErr.message}`,
+        }
+      }
+    }
     return { success: false, error: err.message || 'SMTP verification failed' }
   }
 }
@@ -280,6 +306,7 @@ export async function sendPartnerConfirmationEmail(payload: ConfirmationEmailPay
   const transporter = getSmtpTransporter()
   if (transporter) {
     const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER
+    const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD
     try {
       const fromAddress =
         process.env.EMAIL_FROM || `"OAK Foundation Convening" <${smtpUser}>`
@@ -307,8 +334,50 @@ export async function sendPartnerConfirmationEmail(payload: ConfirmationEmailPay
       console.log(`[Email Sent via SMTP] ID: ${info.messageId} to ${payload.to}`)
       return { success: true, messageId: info.messageId, provider: 'smtp' }
     } catch (err: any) {
-      lastError = `SMTP Delivery Error: ${err.message}`
-      console.error('[SMTP Delivery Error]:', err)
+      console.warn('[SMTP Port 465 failed, attempting port 587 STARTTLS...]:', err.message)
+      if (!process.env.SMTP_HOST && smtpUser && smtpPass) {
+        try {
+          const fallbackTransporter = nodemailer.createTransport({
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false,
+            auth: {
+              user: smtpUser,
+              pass: smtpPass.replace(/\s+/g, ''),
+            },
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 15000,
+          })
+          const fromAddress = process.env.EMAIL_FROM || `"OAK Foundation Convening" <${smtpUser}>`
+          const info = await fallbackTransporter.sendMail({
+            from: fromAddress,
+            to: payload.to,
+            subject,
+            html: htmlContent,
+          })
+          recordSentEmail({
+            id: info.messageId,
+            to: payload.to,
+            subject,
+            name: payload.name,
+            organization: payload.organization,
+            role: payload.role,
+            qr_code_token: payload.qr_code_token,
+            pass_url: passUrl,
+            sent_at: new Date().toISOString(),
+            html: htmlContent,
+          })
+          console.log(`[Email Sent via SMTP port 587] ID: ${info.messageId} to ${payload.to}`)
+          return { success: true, messageId: info.messageId, provider: 'smtp' }
+        } catch (fallbackErr: any) {
+          lastError = `SMTP Delivery Error (Port 465: ${err.message} | Port 587: ${fallbackErr.message})`
+          console.error('[SMTP Delivery Error]:', lastError)
+        }
+      } else {
+        lastError = `SMTP Delivery Error: ${err.message}`
+        console.error('[SMTP Delivery Error]:', err)
+      }
     }
   }
 

@@ -21,9 +21,11 @@ interface PassViewProps {
 export default function PassView({ attendee }: PassViewProps) {
   const qrRef = useRef<HTMLDivElement>(null)
   const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const resendEmail = async () => {
     setEmailStatus('sending')
+    setErrorMessage(null)
     try {
       const res = await fetch('/api/email/resend', {
         method: 'POST',
@@ -33,14 +35,15 @@ export default function PassView({ attendee }: PassViewProps) {
       const data = await res.json().catch(() => ({}))
       if (res.ok && data.success) {
         setEmailStatus('sent')
+        setErrorMessage(null)
         setTimeout(() => setEmailStatus('idle'), 4000)
       } else {
         setEmailStatus('error')
-        setTimeout(() => setEmailStatus('idle'), 4000)
+        setErrorMessage(data.error || 'Email dispatch failed. Please check Vercel environment variables.')
       }
-    } catch {
+    } catch (err: any) {
       setEmailStatus('error')
-      setTimeout(() => setEmailStatus('idle'), 4000)
+      setErrorMessage(err.message || 'Network request failed')
     }
   }
 
@@ -156,6 +159,14 @@ export default function PassView({ attendee }: PassViewProps) {
           </p>
         </div>
       </div>
+
+      {/* Error Details if delivery failed */}
+      {errorMessage && (
+        <div className="w-[370px] max-w-full bg-red-50 border border-red-200 text-red-700 text-xs rounded-[16px] p-3 mt-2 text-left leading-relaxed break-words">
+          <p className="font-bold text-[11px] uppercase tracking-wider text-red-800 mb-1">Email Error:</p>
+          <p className="font-mono text-[11px]">{errorMessage}</p>
+        </div>
+      )}
 
       {/* ─── 5. Action Button ─── */}
       <button
