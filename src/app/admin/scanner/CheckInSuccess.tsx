@@ -46,7 +46,7 @@ export default function CheckInSuccess({
             </div>
             <div>
               <h1 className="text-white text-[20px] font-black leading-tight">
-                {alreadyCheckedIn ? 'Already Checked In' : 'Checked In Successfully'}
+                Checked In Successfully
               </h1>
               <p className="text-white/80 text-xs mt-0.5 font-medium flex items-center gap-1.5">
                 <span>⏱</span>

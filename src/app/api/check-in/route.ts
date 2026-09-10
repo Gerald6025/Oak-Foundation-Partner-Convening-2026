@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         already_checked_in: alreadyCheckedIn,
-        message: alreadyCheckedIn ? 'Already checked in today' : 'Checked In Successfully',
+        message: 'Checked In Successfully',
         attendee: {
           full_name: attendeeData.full_name,
           first_name: attendeeData.first_name,
