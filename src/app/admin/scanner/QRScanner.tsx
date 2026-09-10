@@ -81,54 +81,69 @@ export default function QRScanner({ onScan, isProcessing }: QRScannerProps) {
     <div className="relative">
       <div
         ref={scannerRef}
-        className="bg-oak-gray-700 rounded-2xl overflow-hidden relative"
-        style={{ minHeight: '300px' }}
+        className="bg-[#0F1A2E] rounded-[26px] overflow-hidden relative shadow-md flex flex-col items-center justify-center text-center"
+        style={{ minHeight: '320px' }}
       >
         <div id="qr-scanner-element" className="w-full" />
         
         {!isStarted && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center text-white/60">
-              <svg className="animate-spin h-8 w-8 mx-auto mb-2" viewBox="0 0 24 24">
+          <div className="absolute inset-0 flex items-center justify-center bg-[#0F1A2E]/90 z-10">
+            <div className="text-center text-white/70">
+              <svg className="animate-spin h-7 w-7 mx-auto mb-2 text-white/80" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              <p className="text-sm">Starting camera...</p>
+              <p className="text-xs font-medium">Initializing camera...</p>
             </div>
           </div>
         )}
 
-        {/* Corner markers */}
-        <div className="scanner-corner top-left" />
-        <div className="scanner-corner top-right" />
-        <div className="scanner-corner bottom-left" />
-        <div className="scanner-corner bottom-right" />
+        {/* Viewfinder frame corners */}
+        <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-8 z-10">
+          <div className="relative w-56 h-56 flex flex-col items-center justify-center">
+            {/* Top-left corner */}
+            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-white/90 rounded-tl-xl" />
+            {/* Top-right corner */}
+            <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-white/90 rounded-tr-xl" />
+            {/* Bottom-left corner */}
+            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-white/90 rounded-bl-xl" />
+            {/* Bottom-right corner */}
+            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-white/90 rounded-br-xl" />
+
+            {/* Position QR code helper text */}
+            <p className="text-center text-white/50 text-xs font-normal tracking-wide px-4">
+              Position QR code within the frame
+            </p>
+          </div>
+        </div>
+
+        {/* Bottom indicator within scanner card */}
+        <div className="w-full bg-[#0B1322]/90 border-t border-white/5 py-3 px-4 flex items-center justify-center gap-2 z-20 mt-auto">
+          <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-white/70">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+              <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+              <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+              <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+            </svg>
+          </div>
+          <span className="text-[11px] text-white/60 font-medium">
+            Hold camera steady · Auto-scans in 1–2 seconds
+          </span>
+        </div>
       </div>
 
-      {/* Helper text */}
-      <p className="text-center text-oak-text-muted text-xs mt-3">
-        Position QR code within the frame
-      </p>
-
       {isProcessing && (
-        <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center">
-          <div className="bg-white rounded-xl px-6 py-3 flex items-center gap-2">
-            <svg className="animate-spin h-5 w-5 text-oak-navy" viewBox="0 0 24 24">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-xs rounded-[26px] flex items-center justify-center z-30 animate-fade-in">
+          <div className="bg-white rounded-2xl px-6 py-3.5 flex items-center gap-3 shadow-xl">
+            <svg className="animate-spin h-5 w-5 text-[#162E55]" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
-            <span className="text-sm font-medium">Processing...</span>
+            <span className="text-xs font-bold text-[#0F172A]">Verifying Code...</span>
           </div>
         </div>
       )}
-
-      {/* Camera tip */}
-      <div className="flex items-center gap-2 mt-2 bg-oak-gray-100 rounded-xl px-4 py-2.5">
-        <span className="text-base">📸</span>
-        <span className="text-xs text-oak-text-muted">
-          Hold camera steady · Auto-scans in 1–2 seconds
-        </span>
-      </div>
     </div>
   )
 }

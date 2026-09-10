@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { QRCodeSVG } from 'qrcode.react'
 
@@ -20,6 +20,28 @@ interface PassViewProps {
 
 export default function PassView({ attendee }: PassViewProps) {
   const qrRef = useRef<HTMLDivElement>(null)
+  const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+
+  const resendEmail = async () => {
+    setEmailStatus('sending')
+    try {
+      const res = await fetch('/api/email/resend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: attendee.id }),
+      })
+      if (res.ok) {
+        setEmailStatus('sent')
+        setTimeout(() => setEmailStatus('idle'), 4000)
+      } else {
+        setEmailStatus('error')
+      }
+    } catch {
+      setEmailStatus('error')
+    }
+  }
+
+  const qrToken = attendee.qr_code_token || `OAK-2026-${(attendee.id || 'PASS').slice(0, 8).toUpperCase()}`
 
   const downloadQR = () => {
     const svg = qrRef.current?.querySelector('svg')
@@ -38,7 +60,7 @@ export default function PassView({ attendee }: PassViewProps) {
         ctx.fillRect(0, 0, 400, 400)
         ctx.drawImage(img, 20, 20, 360, 360)
         const a = document.createElement('a')
-        a.download = `${attendee.qr_code_token}.png`
+        a.download = `${qrToken}.png`
         a.href = canvas.toDataURL('image/png')
         a.click()
       }
@@ -78,7 +100,7 @@ export default function PassView({ attendee }: PassViewProps) {
         {/* QR Code Container */}
         <div ref={qrRef} className="inline-flex justify-center items-center p-5 sm:p-6 bg-[#EEF2F6] rounded-[24px]">
           <QRCodeSVG
-            value={attendee.qr_code_token}
+            value={qrToken}
             size={180}
             level="H"
             fgColor="#162E55"
@@ -89,7 +111,7 @@ export default function PassView({ attendee }: PassViewProps) {
 
         {/* Token Display */}
         <p className="text-[12px] font-mono tracking-widest text-[#64748B] font-semibold mt-4">
-          {attendee.qr_code_token}
+          {qrToken}
         </p>
         <p className="text-[10px] text-[#94A3B8] mt-1">
           Present at event entrance for check-in
@@ -105,13 +127,34 @@ export default function PassView({ attendee }: PassViewProps) {
           <DetailRow label="Name" value={attendee.full_name || `${attendee.first_name} ${attendee.last_name}`} />
           <DetailRow label="Organisation" value={attendee.organization} />
           <DetailRow label="Role" value={attendee.role} />
-          <DetailRow label="Email" value={attendee.email} />
-          <DetailRow label="Event Dates" value="9–11 November 2026" />
-          <DetailRow label="Location" value="Harare, Zimbabwe" />
         </div>
       </div>
 
-      {/* ─── 4. Action Button ─── */}
+      {/* ─── 4. Confirmation Email Notice ─── */}
+      <div className="w-[370px] max-w-full bg-[#F0FDF4] border border-[#BBF7D0] rounded-[22px] p-4 mt-3.5 flex items-start gap-3 text-left shadow-xs">
+        <div className="w-7 h-7 rounded-full bg-[#22C55E]/15 text-[#15803D] flex items-center justify-center flex-shrink-0 text-sm font-bold mt-0.5">
+          ✓
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-bold text-[#15803D]">
+              Confirmation Email Sent
+            </p>
+            <button
+              onClick={resendEmail}
+              disabled={emailStatus === 'sending'}
+              className="text-[11px] font-bold text-[#1E3A68] hover:underline cursor-pointer disabled:opacity-50"
+            >
+              {emailStatus === 'sending' ? 'Sending...' : emailStatus === 'sent' ? 'Resent ✓' : 'Resend Email'}
+            </button>
+          </div>
+          <p className="text-[11px] text-[#166534] mt-1 leading-relaxed break-all">
+            Registration details &amp; downloadable QR code sent to <strong>{attendee.email}</strong>
+          </p>
+        </div>
+      </div>
+
+      {/* ─── 5. Action Button ─── */}
       <button
         onClick={downloadQR}
         className="w-[370px] max-w-full bg-[#1E3A68] hover:bg-[#162E55] text-white py-3.5 rounded-[16px] font-bold text-sm tracking-wide shadow-md shadow-[#162E55]/20 flex items-center justify-center gap-2 mt-4 active:scale-[0.99] transition-all cursor-pointer"

@@ -1,0 +1,71 @@
+{
+  "faf9656c-c659-465c-918a-bde9947d4308": {
+    "id": "faf9656c-c659-465c-918a-bde9947d4308",
+    "email": "gerald@uncommon.org",
+    "role": "Partner",
+    "organization": "OAK Foundation"
+  },
+  "gerald@uncommon.org": {
+    "id": "faf9656c-c659-465c-918a-bde9947d4308",
+    "email": "gerald@uncommon.org",
+    "role": "Partner",
+    "organization": "OAK Foundation"
+  },
+  "2f3ba59c-0cc5-44bd-bc6e-0a9bd34e401b": {
+    "id": "2f3ba59c-0cc5-44bd-bc6e-0a9bd34e401b",
+    "email": "josh@oak.com",
+    "role": "Partner",
+    "organization": "unc"
+  },
+  "josh@oak.com": {
+    "id": "2f3ba59c-0cc5-44bd-bc6e-0a9bd34e401b",
+    "email": "josh@oak.com",
+    "role": "Partner",
+    "organization": "unc"
+  },
+  "9e48d574-cc28-4084-9ec6-ae6c08e03c65": {
+    "id": "9e48d574-cc28-4084-9ec6-ae6c08e03c65",
+    "email": "efg@mail.com",
+    "role": "Partner",
+    "organization": "rr"
+  },
+  "efg@mail.com": {
+    "id": "9e48d574-cc28-4084-9ec6-ae6c08e03c65",
+    "email": "efg@mail.com",
+    "role": "Partner",
+    "organization": "rr"
+  },
+  "0b2281d3-3f9b-4d93-a896-4c15fd847561": {
+    "id": "0b2281d3-3f9b-4d93-a896-4c15fd847561",
+    "email": "geraldgchibanda6025@gmail.com",
+    "role": "Partner",
+    "organization": "Uncommon.org",
+    "first_name": "Gerald",
+    "last_name": "Chibanda",
+    "full_name": "Gerald Chibanda",
+    "qr_code_token": "OAK-2026-AE5C-1522",
+    "updated_at": "2026-09-09T18:18:44.978Z"
+  },
+  "geraldgchibanda6025@gmail.com": {
+    "id": "0b2281d3-3f9b-4d93-a896-4c15fd847561",
+    "email": "geraldgchibanda6025@gmail.com",
+    "role": "Partner",
+    "organization": "Uncommon.org",
+    "first_name": "Gerald",
+    "last_name": "Chibanda",
+    "full_name": "Gerald Chibanda",
+    "qr_code_token": "OAK-2026-AE5C-1522",
+    "updated_at": "2026-09-09T18:18:44.978Z"
+  },
+  "OAK-2026-AE5C-1522": {
+    "id": "0b2281d3-3f9b-4d93-a896-4c15fd847561",
+    "email": "geraldgchibanda6025@gmail.com",
+    "role": "Partner",
+    "organization": "Uncommon.org",
+    "first_name": "Gerald",
+    "last_name": "Chibanda",
+    "full_name": "Gerald Chibanda",
+    "qr_code_token": "OAK-2026-AE5C-1522",
+    "updated_at": "2026-09-09T18:18:44.978Z"
+  }
+}

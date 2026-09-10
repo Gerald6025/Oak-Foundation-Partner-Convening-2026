@@ -27,9 +27,7 @@ export const registrationSchema = z.object({
     .max(200, 'Sub-partner name is too long')
     .optional()
     .or(z.literal('')),
-  role: z
-    .string()
-    .min(1, 'Role is required'),
+  role: z.string().min(1, 'Role is required'),
   dietary_requirements: z
     .string()
     .max(500, 'Too long')
@@ -41,6 +39,11 @@ export const registrationSchema = z.object({
     .optional()
     .or(z.literal('')),
   travel_needs: z
+    .string()
+    .max(500, 'Too long')
+    .optional()
+    .or(z.literal('')),
+  accommodation_needs: z
     .string()
     .max(500, 'Too long')
     .optional()

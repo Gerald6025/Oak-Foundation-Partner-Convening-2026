@@ -1,3 +1,5 @@
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import AppShell from '@/components/layout/AppShell'
 import { createClient } from '@/lib/supabase/server'
 import type { Partner } from '@/lib/types'
@@ -7,6 +9,12 @@ import PartnersView from './PartnersView'
 export const dynamic = 'force-dynamic'
 
 export default async function PartnersPage() {
+  const cookieStore = await cookies()
+  const role = cookieStore.get('user_role')?.value
+  if (role === 'Partner') {
+    redirect('/programme')
+  }
+
   let partnersData: Partner[] = defaultPartners
 
   try {

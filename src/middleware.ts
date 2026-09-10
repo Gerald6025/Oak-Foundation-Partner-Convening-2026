@@ -34,11 +34,70 @@ export async function middleware(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser()
 
-    const isLoginPage = request.nextUrl.pathname === '/admin/login'
-    const isScannerPage = request.nextUrl.pathname === '/admin/scanner'
+    const userRoleCookie = request.cookies.get('user_role')?.value
+    const userRole = userRoleCookie ? decodeURIComponent(userRoleCookie) : null
 
-    // Allow scanner page without auth (coordination team uses it at the door)
-    if (!isLoginPage && !isScannerPage && !user) {
+    // ─── Partner Restrictions ───
+    // Partners ONLY have access to Registration (/register), QR code page (/pass), and Programme (/programme)
+    if (userRole === 'Partner') {
+      if (
+        request.nextUrl.pathname.startsWith('/admin') ||
+        request.nextUrl.pathname.startsWith('/partners')
+      ) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/programme'
+        return NextResponse.redirect(url)
+      }
+    }
+
+    // ─── Coordination Team Restrictions ───
+    // Coordination Team members have full access to Scanner, Dashboard, Programme, Partners.
+    // No QR code is generated for Coordination Team; pass routes redirect to Coordination dashboard.
+    if (userRole === 'Coordination Team') {
+      if (request.nextUrl.pathname.startsWith('/pass')) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/admin/dashboard'
+        return NextResponse.redirect(url)
+      }
+    }
+
+    // ─── Observer Restrictions ───
+    // Observers can access Program (/programme) and Partners (/partners).
+    // They have NO access to Admin (Check-In scanner, Attendance dashboard) or QR code pass.
+    if (userRole === 'Observer') {
+      if (
+        request.nextUrl.pathname.startsWith('/admin') ||
+        request.nextUrl.pathname.startsWith('/pass')
+      ) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/programme'
+        return NextResponse.redirect(url)
+      }
+    }
+
+    // ─── Presenter Restrictions (PDF Section 10 Matrix) ───
+    // Presenters have NO right to Attendance or Check-In scanner
+    if (userRole === 'Presenter') {
+      if (
+        request.nextUrl.pathname.startsWith('/admin/scanner') ||
+        request.nextUrl.pathname.startsWith('/admin/dashboard') ||
+        request.nextUrl.pathname.startsWith('/admin/attendance')
+      ) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/programme'
+        return NextResponse.redirect(url)
+      }
+    }
+
+    const isLoginPage = request.nextUrl.pathname === '/admin/login'
+    const isCoordinationRoute =
+      request.nextUrl.pathname === '/admin/scanner' ||
+      request.nextUrl.pathname === '/admin/dashboard' ||
+      request.nextUrl.pathname === '/admin/attendance'
+    const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
+
+    // Coordination pages can be accessed on-site; login page is public; other protected admin pages require Supabase Auth
+    if (isAdminRoute && !isLoginPage && !isCoordinationRoute && !user) {
       const url = request.nextUrl.clone()
       url.pathname = '/admin/login'
       return NextResponse.redirect(url)
@@ -59,5 +118,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/partners/:path*', '/pass/:path*'],
 }

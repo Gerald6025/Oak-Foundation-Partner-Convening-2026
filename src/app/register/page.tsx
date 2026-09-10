@@ -8,14 +8,11 @@ import AppShell from '@/components/layout/AppShell'
 import { registrationSchema, type RegistrationInput } from '@/lib/validators'
 
 const roleOptions = [
-  'Partner Representative',
-  'Programme Manager',
-  'Executive Director',
-  'Board Member',
+  'Partner',
   'OAK Staff',
-  'Facilitator',
+  'Coordination Team',
+  'Presenter',
   'Observer',
-  'Other',
 ]
 
 export default function RegisterPage() {
@@ -26,6 +23,7 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<RegistrationInput>({
     resolver: zodResolver(registrationSchema),
@@ -33,6 +31,8 @@ export default function RegisterPage() {
       consent_given: false,
     },
   })
+
+  const selectedRole = watch('role')
 
   const onSubmit = async (data: RegistrationInput) => {
     setIsSubmitting(true)
@@ -52,8 +52,30 @@ export default function RegisterPage() {
         return
       }
 
-      // Redirect to the pass page
-      router.push(`/pass/${result.id}`)
+      // Persist active role for permission checks and navigation
+      document.cookie = `user_role=${encodeURIComponent(data.role)}; path=/; max-age=2592000; SameSite=Lax`
+      try {
+        localStorage.setItem('user_role', data.role)
+      } catch {}
+
+      // Role-based workflow redirection:
+      // - Coordination Team: Coordination Team Dashboard
+      // - Presenter: Programme (no QR check-in pass)
+      // - Observer: Programme (platform dashboard, no QR pass)
+      // - Partner: Straight to QR Code Entry Pass
+      if (data.role === 'Coordination Team') {
+        window.location.href = '/admin/dashboard'
+        return
+      } else if (data.role === 'Presenter' || data.role === 'Observer') {
+        window.location.href = '/programme'
+        return
+      } else if (data.role === 'Partner') {
+        window.location.href = `/pass/${result.id}`
+        return
+      } else {
+        window.location.href = '/programme'
+        return
+      }
     } catch {
       setServerError('Network error. Please check your connection and try again.')
     } finally {
@@ -278,14 +300,27 @@ export default function RegisterPage() {
 
               <div>
                 <label className="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-1">
-                  Travel & Accommodation
+                  Travel Requirements
                 </label>
                 <input
                   {...register('travel_needs')}
                   type="text"
-                  placeholder="e.g. Flight from London, hotel needed"
+                  placeholder="e.g. Flight from London, airport transfer needed"
                   className="w-full px-3 py-2 bg-white border-0 rounded-[12px] text-xs text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#162E55]/25 transition-all"
                   id="travel_needs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-1">
+                  Accommodation Requirements
+                </label>
+                <input
+                  {...register('accommodation_needs')}
+                  type="text"
+                  placeholder="e.g. Hotel reservation, accessible room required"
+                  className="w-full px-3 py-2 bg-white border-0 rounded-[12px] text-xs text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#162E55]/25 transition-all"
+                  id="accommodation_needs"
                 />
               </div>
             </div>
@@ -326,7 +361,7 @@ export default function RegisterPage() {
                   Registering...
                 </span>
               ) : (
-                'Register & Generate QR Code'
+                'Register'
               )}
             </button>
           </form>

@@ -8,76 +8,75 @@ interface CheckInErrorProps {
 export default function CheckInError({ error, onTryAgain }: CheckInErrorProps) {
   return (
     <AppShell>
-      {/* Error Banner */}
-      <div className="mx-4 mt-4 rounded-2xl p-5 relative overflow-hidden animate-scale-in bg-oak-red">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="flex items-start gap-3 relative z-10">
-          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="15" y1="9" x2="9" y2="15" />
-              <line x1="9" y1="9" x2="15" y2="15" />
-            </svg>
+      <div className="w-full flex flex-col items-center px-4 pt-3 pb-24">
+        <div className="w-[370px] max-w-full">
+          {/* ─── 1. Red Error Banner ─── */}
+          <div className="w-full bg-[#E53935] rounded-[26px] p-5 shadow-md flex items-center gap-3.5 relative overflow-hidden animate-scale-in">
+            <div className="w-12 h-12 rounded-[16px] bg-white/20 flex items-center justify-center flex-shrink-0 text-white">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-white/80 text-[10px] font-bold uppercase tracking-wider">
+                CHECK-IN FAILED
+              </p>
+              <h1 className="text-white text-[21px] font-black leading-tight mt-0.5">
+                QR Not Recognised
+              </h1>
+              <p className="text-white/80 text-xs mt-0.5 font-normal">
+                {error || 'Code is invalid or unregistered'}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-white/80 text-xs font-medium uppercase tracking-wider">Check-in Failed</p>
-            <h1 className="text-white text-xl font-bold mt-0.5">QR Not Recognised</h1>
-            <p className="text-white/70 text-sm mt-0.5">{error}</p>
+
+          {/* ─── 2. Possible Reasons Card ─── */}
+          <div className="w-full bg-white rounded-[26px] p-5 shadow-sm border border-slate-100/80 mt-3.5 animate-slide-up">
+            <h3 className="font-extrabold text-sm text-[#0F172A] flex items-center gap-2">
+              <span className="text-amber-500">⚠️</span>
+              <span>Possible reasons</span>
+            </h3>
+            <ul className="mt-3.5 space-y-2.5">
+              {[
+                'QR code belongs to a different event',
+                'Registration was not completed',
+                'Code has been altered or corrupted',
+                'Attendee registered under a different email',
+              ].map((reason, i) => (
+                <li key={i} className="flex items-start gap-2.5 text-xs text-[#64748B] leading-relaxed">
+                  <span className="w-2 h-2 bg-red-400 rounded-full mt-1.5 flex-shrink-0" />
+                  <span>{reason}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* ─── 3. Action Buttons ─── */}
+          <div className="mt-4 space-y-3">
+            <button
+              onClick={onTryAgain}
+              className="w-full bg-[#1E3A68] hover:bg-[#162E55] text-white py-3.5 rounded-[18px] font-bold text-sm tracking-wide shadow-md shadow-[#162E55]/20 flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer"
+              id="try-again-btn"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21.5 2v6h-6" />
+                <path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+              </svg>
+              <span>Try Again</span>
+            </button>
+
+            <a
+              href="tel:+263770000000"
+              className="w-full bg-white text-[#0F172A] py-3.5 rounded-[18px] font-bold text-sm border border-slate-200 hover:bg-slate-50 flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer shadow-sm text-center"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
+              </svg>
+              <span>Contact Coordination Team</span>
+            </a>
           </div>
         </div>
-      </div>
-
-      {/* Possible Reasons */}
-      <div className="max-w-lg mx-auto px-4 mt-4 animate-slide-up stagger-1">
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <h3 className="font-semibold text-oak-text flex items-center gap-2">
-            <span className="text-lg">⚠️</span>
-            Possible reasons
-          </h3>
-          <ul className="mt-3 space-y-2.5">
-            {[
-              'QR code belongs to a different event',
-              'Registration was not completed',
-              'Code has been altered or corrupted',
-              'Attendee registered under a different email',
-            ].map((reason, i) => (
-              <li key={i} className="flex items-start gap-2.5 text-sm text-oak-text-muted">
-                <span className="w-2 h-2 bg-oak-red/40 rounded-full mt-1.5 flex-shrink-0" />
-                {reason}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className="max-w-lg mx-auto px-4 mt-6 space-y-3 animate-slide-up stagger-2 mb-8">
-        <button
-          onClick={onTryAgain}
-          className="w-full bg-oak-navy text-white py-4 rounded-2xl font-semibold text-base
-            hover:bg-oak-navy-light transition-colors shadow-lg shadow-oak-navy/20 active:scale-[0.98]"
-          id="try-again-btn"
-        >
-          <span className="flex items-center justify-center gap-2">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M1 4v6h6" />
-              <path d="M3.51 15a9 9 0 102.13-9.36L1 10" />
-            </svg>
-            Try Again
-          </span>
-        </button>
-
-        <button
-          className="w-full bg-white text-oak-text py-4 rounded-2xl font-semibold text-base
-            border border-oak-gray-200 hover:bg-oak-gray-50 transition-colors"
-        >
-          <span className="flex items-center justify-center gap-2">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
-            </svg>
-            Contact Coordination Team
-          </span>
-        </button>
       </div>
     </AppShell>
   )
