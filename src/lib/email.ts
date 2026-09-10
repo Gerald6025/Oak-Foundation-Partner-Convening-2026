@@ -28,16 +28,16 @@ const SENT_EMAILS_FILE = path.join(process.cwd(), 'src', 'lib', 'sent-emails.jso
 
 function recordSentEmail(record: SentEmailRecord) {
   try {
-    let emails: SentEmailRecord[] = []
+    // Only attempt to write if file exists or in local development
     if (fs.existsSync(SENT_EMAILS_FILE)) {
-      emails = JSON.parse(fs.readFileSync(SENT_EMAILS_FILE, 'utf8'))
+      const emails: SentEmailRecord[] = JSON.parse(fs.readFileSync(SENT_EMAILS_FILE, 'utf8') || '[]')
+      emails.unshift(record)
+      const trimmed = emails.slice(0, 50)
+      fs.writeFileSync(SENT_EMAILS_FILE, JSON.stringify(trimmed, null, 2), 'utf8')
     }
-    emails.unshift(record)
-    // Keep last 50 emails
-    if (emails.length > 50) emails = emails.slice(0, 50)
-    fs.writeFileSync(SENT_EMAILS_FILE, JSON.stringify(emails, null, 2), 'utf8')
-  } catch (err) {
-    console.error('Failed to log sent email:', err)
+  } catch (err: any) {
+    // Silently ignore filesystem write errors in read-only serverless environments (Vercel)
+    console.warn('[Email Log] Skipped local filesystem write:', err.message)
   }
 }
 
@@ -52,12 +52,92 @@ export function getSentEmails(): SentEmailRecord[] {
   return []
 }
 
+/**
+ * Dynamically resolves the base URL of the site, ensuring production links work
+ * on Vercel deployments even if NEXT_PUBLIC_SITE_URL is not manually set.
+ */
+export function getBaseSiteUrl(): string {
+  if (process.env.NEXT_PUBLIC_SITE_URL && !process.env.NEXT_PUBLIC_SITE_URL.includes('localhost')) {
+    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '')
+  }
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`
+  }
+  return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+}
+
+/**
+ * Creates a configured Nodemailer transporter with connection timeouts
+ * suitable for serverless execution (e.g. Vercel / AWS Lambda).
+ */
+export function getSmtpTransporter() {
+  const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER
+  const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD
+
+  if (!smtpUser || !smtpPass) {
+    return null
+  }
+
+  const isCustomSmtp = Boolean(process.env.SMTP_HOST)
+  const cleanPass = smtpPass.replace(/\s+/g, '')
+
+  if (isCustomSmtp) {
+    const port = Number(process.env.SMTP_PORT) || 587
+    return nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port,
+      secure: port === 465,
+      auth: {
+        user: smtpUser,
+        pass: cleanPass,
+      },
+      connectionTimeout: 12000,
+      greetingTimeout: 12000,
+      socketTimeout: 15000,
+    })
+  }
+
+  // Gmail SMTP with explicit host and SSL port 465 (most reliable in serverless)
+  return nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+      user: smtpUser,
+      pass: cleanPass,
+    },
+    connectionTimeout: 12000,
+    greetingTimeout: 12000,
+    socketTimeout: 15000,
+  })
+}
+
+/**
+ * Helper to test SMTP connection during diagnostics
+ */
+export async function verifySmtpConnection(): Promise<{ success: boolean; error?: string }> {
+  const transporter = getSmtpTransporter()
+  if (!transporter) {
+    return { success: false, error: 'SMTP credentials (SMTP_USER / SMTP_PASS) are not configured.' }
+  }
+  try {
+    await transporter.verify()
+    return { success: true }
+  } catch (err: any) {
+    return { success: false, error: err.message || 'SMTP verification failed' }
+  }
+}
+
 export async function sendPartnerConfirmationEmail(payload: ConfirmationEmailPayload): Promise<{
   success: boolean
   messageId?: string
   error?: string
+  provider?: 'smtp' | 'resend' | 'mock'
 }> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  const siteUrl = getBaseSiteUrl()
   const passUrl = `${siteUrl}/pass/${payload.pass_id}`
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&format=png&data=${encodeURIComponent(payload.qr_code_token)}`
 
@@ -194,31 +274,13 @@ export async function sendPartnerConfirmationEmail(payload: ConfirmationEmailPay
 </html>
 `
 
-  // 1. Try Gmail / SMTP if configured
-  const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER
-  const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD
+  let lastError: string | null = null
 
-  if (smtpUser && smtpPass) {
+  // 1. Try Gmail / SMTP if credentials exist
+  const transporter = getSmtpTransporter()
+  if (transporter) {
+    const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER
     try {
-      const isCustomSmtp = Boolean(process.env.SMTP_HOST)
-      const transporter = isCustomSmtp
-        ? nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: Number(process.env.SMTP_PORT) || 587,
-            secure: Number(process.env.SMTP_PORT) === 465,
-            auth: {
-              user: smtpUser,
-              pass: smtpPass.replace(/\s+/g, ''),
-            },
-          })
-        : nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-              user: smtpUser,
-              pass: smtpPass.replace(/\s+/g, ''),
-            },
-          })
-
       const fromAddress =
         process.env.EMAIL_FROM || `"OAK Foundation Convening" <${smtpUser}>`
 
@@ -243,32 +305,40 @@ export async function sendPartnerConfirmationEmail(payload: ConfirmationEmailPay
       })
 
       console.log(`[Email Sent via SMTP] ID: ${info.messageId} to ${payload.to}`)
-      return { success: true, messageId: info.messageId }
+      return { success: true, messageId: info.messageId, provider: 'smtp' }
     } catch (err: any) {
-      console.error('[SMTP Delivery Error]:', err.message)
+      lastError = `SMTP Delivery Error: ${err.message}`
+      console.error('[SMTP Delivery Error]:', err)
     }
   }
 
-  // 2. Try Resend if configured
+  // 2. Try Resend if configured (HTTPS REST API, ideal for serverless)
   if (process.env.RESEND_API_KEY) {
     try {
+      // For Resend, default to onboarding@resend.dev if custom domain is not yet verified
+      const fromAddress =
+        process.env.RESEND_FROM ||
+        process.env.EMAIL_FROM ||
+        'OAK Convening <onboarding@resend.dev>'
+
       const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: process.env.EMAIL_FROM || 'OAK Convening <convening@oakfnd.org>',
+          from: fromAddress,
           to: payload.to,
           subject,
           html: htmlContent,
         }),
       })
-      if (res.ok) {
-        const data = await res.json()
+
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.id) {
         recordSentEmail({
-          id: data.id || `email-${Date.now()}`,
+          id: data.id,
           to: payload.to,
           subject,
           name: payload.name,
@@ -279,32 +349,53 @@ export async function sendPartnerConfirmationEmail(payload: ConfirmationEmailPay
           sent_at: new Date().toISOString(),
           html: htmlContent,
         })
-        return { success: true, messageId: data.id }
+        console.log(`[Email Sent via Resend] ID: ${data.id} to ${payload.to}`)
+        return { success: true, messageId: data.id, provider: 'resend' }
+      } else {
+        lastError = `Resend API Error: ${data.message || JSON.stringify(data) || res.statusText}`
+        console.error('[Resend Error]:', lastError)
       }
     } catch (err: any) {
-      console.warn('Resend email dispatch error, falling back to local recorder:', err.message)
+      lastError = `Resend Request Error: ${err.message}`
+      console.error('[Resend Request Error]:', err.message)
     }
   }
 
-  // 2. Record email in sent history
-  const emailId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`
-  recordSentEmail({
-    id: emailId,
-    to: payload.to,
-    subject,
-    name: payload.name,
-    organization: payload.organization,
-    role: payload.role,
-    qr_code_token: payload.qr_code_token,
-    pass_url: passUrl,
-    sent_at: new Date().toISOString(),
-    html: htmlContent,
-  })
+  // 3. If in local development with no credentials, fall back to mock recording
+  const isProd = process.env.NODE_ENV === 'production'
+  const hasConfig = Boolean(process.env.SMTP_USER || process.env.GMAIL_USER || process.env.RESEND_API_KEY)
 
-  console.log(`[Confirmation Email Sent] to: ${payload.to} | Token: ${payload.qr_code_token} | Pass: ${passUrl}`)
+  if (!isProd && !hasConfig) {
+    const emailId = `local-mock-${Date.now()}`
+    recordSentEmail({
+      id: emailId,
+      to: payload.to,
+      subject,
+      name: payload.name,
+      organization: payload.organization,
+      role: payload.role,
+      qr_code_token: payload.qr_code_token,
+      pass_url: passUrl,
+      sent_at: new Date().toISOString(),
+      html: htmlContent,
+    })
+    console.warn(`[Local Dev Mock Email] Recorded mock email for ${payload.to}`)
+    return {
+      success: true,
+      messageId: emailId,
+      provider: 'mock',
+    }
+  }
 
+  // In production or when credentials were provided but delivery failed, return explicit error
+  const finalErrorMessage =
+    lastError ||
+    'Email delivery failed: Neither SMTP nor Resend is properly configured in this environment. Please set SMTP_USER and SMTP_PASS (or RESEND_API_KEY) in your Vercel Environment Variables.'
+
+  console.error('[Email Dispatch Failed]:', finalErrorMessage)
   return {
-    success: true,
-    messageId: emailId,
+    success: false,
+    error: finalErrorMessage,
   }
 }
+

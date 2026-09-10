@@ -30,14 +30,17 @@ export default function PassView({ attendee }: PassViewProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: attendee.id }),
       })
-      if (res.ok) {
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.success) {
         setEmailStatus('sent')
         setTimeout(() => setEmailStatus('idle'), 4000)
       } else {
         setEmailStatus('error')
+        setTimeout(() => setEmailStatus('idle'), 4000)
       }
     } catch {
       setEmailStatus('error')
+      setTimeout(() => setEmailStatus('idle'), 4000)
     }
   }
 
@@ -145,7 +148,7 @@ export default function PassView({ attendee }: PassViewProps) {
               disabled={emailStatus === 'sending'}
               className="text-[11px] font-bold text-[#1E3A68] hover:underline cursor-pointer disabled:opacity-50"
             >
-              {emailStatus === 'sending' ? 'Sending...' : emailStatus === 'sent' ? 'Resent ✓' : 'Resend Email'}
+              {emailStatus === 'sending' ? 'Sending...' : emailStatus === 'sent' ? 'Resent ✓' : emailStatus === 'error' ? 'Failed to send ⚠' : 'Resend Email'}
             </button>
           </div>
           <p className="text-[11px] text-[#166534] mt-1 leading-relaxed break-all">

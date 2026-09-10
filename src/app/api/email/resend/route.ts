@@ -35,6 +35,10 @@ export async function POST(request: NextRequest) {
       pass_id: attendee.id,
     })
 
+    if (!result.success) {
+      return NextResponse.json(result, { status: 500 })
+    }
+
     return NextResponse.json(result)
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Failed to resend email' }, { status: 500 })
