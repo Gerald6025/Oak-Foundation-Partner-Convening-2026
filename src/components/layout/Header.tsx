@@ -3,7 +3,7 @@ import Image from 'next/image'
 
 export default function Header() {
   return (
-    <header className="bg-[#162E55] text-white sticky top-0 z-50">
+    <header className="bg-[#162E55] text-white sticky top-0 z-50 md:hidden">
       <div className="w-[370px] max-w-full mx-auto px-4 py-3 flex items-center gap-3">
         {/* OAK Logo */}
         <Link href="/" className="flex items-center flex-shrink-0">

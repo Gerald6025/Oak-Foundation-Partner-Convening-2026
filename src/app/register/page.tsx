@@ -85,19 +85,19 @@ export default function RegisterPage() {
 
   return (
     <AppShell showBottomNav={false}>
-      <div className="w-full flex flex-col items-center px-4 pt-3 pb-8">
+      <div className="w-full flex flex-col items-center px-4 pt-3 md:pt-8 pb-12">
         {/* ─── Hero Banner Card ─── */}
-        <div className="w-[370px] max-w-full h-[167px] bg-gradient-to-b from-[#1C3663] to-[#142646] rounded-[26px] p-6 shadow-md relative overflow-hidden flex flex-col justify-center text-left">
-          <h1 className="text-[27px] font-extrabold text-white leading-[1.18] tracking-tight">
+        <div className="w-full max-w-[370px] md:max-w-[490px] lg:max-w-[500px] h-[160px] md:h-[167px] bg-gradient-to-b from-[#1C3663] to-[#142646] rounded-[24px] p-6 shadow-md relative overflow-hidden flex flex-col justify-center text-left">
+          <h1 className="text-[26px] md:text-[28px] font-extrabold text-white leading-[1.18] tracking-tight">
             Partner<br />Convening 2026
           </h1>
-          <p className="text-white/60 text-xs mt-2.5 font-normal">
-            Harare · 9–11 November 2026
+          <p className="text-white/60 text-xs mt-2 font-normal">
+            Harare · 9–11 Nov 2026
           </p>
         </div>
 
         {/* ─── Stats Row ─── */}
-        <div className="w-[370px] max-w-full grid grid-cols-3 gap-2.5 mt-3">
+        <div className="w-full max-w-[370px] md:max-w-[490px] lg:max-w-[500px] grid grid-cols-3 gap-2.5 md:gap-3 mt-3">
           <MiniStat
             icon={
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -136,8 +136,8 @@ export default function RegisterPage() {
         </div>
 
         {/* ─── Registration Form Card ─── */}
-        <div className="w-[370px] max-w-full bg-white rounded-[26px] p-5 sm:p-6 shadow-sm border border-slate-100/80 mt-4">
-          <h2 className="text-[19px] font-extrabold text-[#0F172A] mb-5">
+        <div className="w-full max-w-[370px] md:max-w-[490px] lg:max-w-[500px] bg-white rounded-[24px] p-5 sm:p-6 md:p-7 shadow-xs border border-slate-100/80 mt-3.5">
+          <h2 className="text-[17px] md:text-[18px] font-extrabold text-[#0F172A] mb-5">
             Registration Form
           </h2>
 
@@ -267,60 +267,47 @@ export default function RegisterPage() {
             </FormField>
 
             {/* Requirements Box */}
-            <div className="bg-[#EEF2F6] rounded-[18px] p-3.5 space-y-3">
+            <div className="bg-[#EEF2F6] rounded-[18px] p-3.5 sm:p-4 space-y-3">
               <h3 className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">
-                Requirements
+                REQUIREMENTS
               </h3>
 
               <div>
                 <label className="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-1">
-                  Dietary Requirements
+                  DIETARY REQUIREMENTS
                 </label>
                 <input
                   {...register('dietary_requirements')}
                   type="text"
                   placeholder="e.g. Vegetarian, Halal, Gluten-free"
-                  className="w-full px-3 py-2 bg-white border-0 rounded-[12px] text-xs text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#162E55]/25 transition-all"
+                  className="w-full px-3.5 py-2.5 bg-white border-0 rounded-[12px] text-xs text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#162E55]/20 transition-all"
                   id="dietary_requirements"
                 />
               </div>
 
               <div>
                 <label className="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-1">
-                  Accessibility Requirements
+                  ACCESSIBILITY REQUIREMENTS
                 </label>
                 <input
                   {...register('accessibility_needs')}
                   type="text"
                   placeholder="e.g. Wheelchair access, hearing loop"
-                  className="w-full px-3 py-2 bg-white border-0 rounded-[12px] text-xs text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#162E55]/25 transition-all"
+                  className="w-full px-3.5 py-2.5 bg-white border-0 rounded-[12px] text-xs text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#162E55]/20 transition-all"
                   id="accessibility_needs"
                 />
               </div>
 
               <div>
                 <label className="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-1">
-                  Travel Requirements
+                  TRAVEL &amp; ACCOMMODATION
                 </label>
                 <input
                   {...register('travel_needs')}
                   type="text"
-                  placeholder="e.g. Flight from London, airport transfer needed"
-                  className="w-full px-3 py-2 bg-white border-0 rounded-[12px] text-xs text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#162E55]/25 transition-all"
+                  placeholder="e.g. Flight from London, hotel needed"
+                  className="w-full px-3.5 py-2.5 bg-white border-0 rounded-[12px] text-xs text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#162E55]/20 transition-all"
                   id="travel_needs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-1">
-                  Accommodation Requirements
-                </label>
-                <input
-                  {...register('accommodation_needs')}
-                  type="text"
-                  placeholder="e.g. Hotel reservation, accessible room required"
-                  className="w-full px-3 py-2 bg-white border-0 rounded-[12px] text-xs text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#162E55]/25 transition-all"
-                  id="accommodation_needs"
                 />
               </div>
             </div>
@@ -349,7 +336,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-[#1E3A68] hover:bg-[#162E55] text-white py-3.5 rounded-[16px] font-bold text-sm tracking-wide shadow-md shadow-[#162E55]/20 active:scale-[0.99] transition-all disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+              className="w-full bg-[#162E55] hover:bg-[#1C3663] text-white py-3.5 rounded-[16px] font-bold text-sm tracking-wide shadow-md shadow-[#162E55]/20 active:scale-[0.99] transition-all disabled:opacity-60 disabled:cursor-not-allowed mt-2 cursor-pointer"
               id="submit-registration"
             >
               {isSubmitting ? (
@@ -368,7 +355,7 @@ export default function RegisterPage() {
         </div>
 
         {/* GDPR Note */}
-        <p className="w-[370px] max-w-full text-[10px] text-[#94A3B8] text-center mt-1 leading-normal px-4">
+        <p className="w-full max-w-[370px] md:max-w-[490px] lg:max-w-[500px] text-[10px] md:text-[11px] text-[#94A3B8] text-center mt-3 leading-normal px-4">
           Your data is secured and handled by OAK Foundation in accordance with GDPR.
         </p>
       </div>

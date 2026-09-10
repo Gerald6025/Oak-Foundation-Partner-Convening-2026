@@ -45,7 +45,7 @@ export default function BottomNav() {
     pathname === '/admin/dashboard' || pathname === '/admin/attendance'
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-100 shadow-sm no-print">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-100 shadow-sm no-print md:hidden">
       <div className="w-[370px] max-w-full mx-auto flex items-center justify-around py-2 px-2">
         {/* Tab: Check In (Coordination Team Only) */}
         {showCheckIn && (
