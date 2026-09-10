@@ -124,12 +124,5 @@ src/
 | `programme_sessions` | Event schedule |
 | `documentation_posts` | Daily event documentation |
 
-## Team
-
-- **Student Developers** — Software Engineering track @ Uncommon.org
-- **Student Designers** — Product Design track
-- **QA & Coordination** — Instructor-led review and sign-off
-
----
 
 
