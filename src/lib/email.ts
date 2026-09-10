@@ -70,19 +70,48 @@ export function getBaseSiteUrl(): string {
 }
 
 /**
+ * Resolves SMTP credentials supporting all common aliases and trimming quotes/spaces
+ */
+export function resolveSmtpCredentials() {
+  const smtpUser =
+    process.env.SMTP_USER ||
+    process.env.SMTP_USERNAME ||
+    process.env.GMAIL_USER ||
+    process.env.GMAIL_USERNAME ||
+    process.env.EMAIL_USER ||
+    process.env.MAIL_USER ||
+    process.env.NEXT_PUBLIC_SMTP_USER
+
+  const rawPass =
+    process.env.SMTP_PASS ||
+    process.env.SMTP_PASSWORD ||
+    process.env.GMAIL_PASS ||
+    process.env.GMAIL_PASSWORD ||
+    process.env.GMAIL_APP_PASSWORD ||
+    process.env.EMAIL_PASS ||
+    process.env.EMAIL_PASSWORD ||
+    process.env.MAIL_PASS ||
+    process.env.MAIL_PASSWORD ||
+    process.env.NEXT_PUBLIC_SMTP_PASS
+
+  const smtpPass = rawPass ? rawPass.trim().replace(/^["']|["']$/g, '').replace(/\s+/g, '') : undefined
+  const cleanUser = smtpUser ? smtpUser.trim().replace(/^["']|["']$/g, '') : undefined
+
+  return { smtpUser: cleanUser, smtpPass }
+}
+
+/**
  * Creates a configured Nodemailer transporter with connection timeouts
  * suitable for serverless execution (e.g. Vercel / AWS Lambda).
  */
 export function getSmtpTransporter() {
-  const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER
-  const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD
+  const { smtpUser, smtpPass } = resolveSmtpCredentials()
 
   if (!smtpUser || !smtpPass) {
     return null
   }
 
   const isCustomSmtp = Boolean(process.env.SMTP_HOST)
-  const cleanPass = smtpPass.replace(/\s+/g, '')
 
   if (isCustomSmtp) {
     const port = Number(process.env.SMTP_PORT) || 587
@@ -92,7 +121,7 @@ export function getSmtpTransporter() {
       secure: port === 465,
       auth: {
         user: smtpUser,
-        pass: cleanPass,
+        pass: smtpPass,
       },
       connectionTimeout: 12000,
       greetingTimeout: 12000,
@@ -107,7 +136,7 @@ export function getSmtpTransporter() {
     secure: true,
     auth: {
       user: smtpUser,
-      pass: cleanPass,
+      pass: smtpPass,
     },
     connectionTimeout: 12000,
     greetingTimeout: 12000,
@@ -305,8 +334,7 @@ export async function sendPartnerConfirmationEmail(payload: ConfirmationEmailPay
   // 1. Try Gmail / SMTP if credentials exist
   const transporter = getSmtpTransporter()
   if (transporter) {
-    const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER
-    const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD
+    const { smtpUser, smtpPass } = resolveSmtpCredentials()
     try {
       const fromAddress =
         process.env.EMAIL_FROM || `"OAK Foundation Convening" <${smtpUser}>`
@@ -432,7 +460,8 @@ export async function sendPartnerConfirmationEmail(payload: ConfirmationEmailPay
 
   // 3. If in local development with no credentials, fall back to mock recording
   const isProd = process.env.NODE_ENV === 'production'
-  const hasConfig = Boolean(process.env.SMTP_USER || process.env.GMAIL_USER || process.env.RESEND_API_KEY)
+  const { smtpUser, smtpPass } = resolveSmtpCredentials()
+  const hasConfig = Boolean((smtpUser && smtpPass) || process.env.RESEND_API_KEY)
 
   if (!isProd && !hasConfig) {
     const emailId = `local-mock-${Date.now()}`

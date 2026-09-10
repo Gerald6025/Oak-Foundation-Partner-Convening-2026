@@ -3,11 +3,11 @@ import {
   verifySmtpConnection,
   sendPartnerConfirmationEmail,
   getBaseSiteUrl,
+  resolveSmtpCredentials,
 } from '@/lib/email'
 
 export async function GET() {
-  const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER
-  const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD
+  const { smtpUser, smtpPass } = resolveSmtpCredentials()
   const resendKey = process.env.RESEND_API_KEY
   const emailFrom = process.env.EMAIL_FROM
 
@@ -16,7 +16,7 @@ export async function GET() {
     resolvedSiteUrl: getBaseSiteUrl(),
     envVariablesDetected: {
       SMTP_USER: smtpUser ? `${smtpUser.slice(0, 3)}***@${smtpUser.split('@')[1] || ''}` : 'MISSING',
-      SMTP_PASS: smtpPass ? 'CONFIGURED (length: ' + smtpPass.length + ')' : 'MISSING',
+      SMTP_PASS: smtpPass ? `CONFIGURED (${smtpPass.length} chars)` : 'MISSING',
       EMAIL_FROM: emailFrom || 'Using default',
       RESEND_API_KEY: resendKey ? 'CONFIGURED' : 'NOT SET',
       NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'NOT SET',
@@ -26,6 +26,13 @@ export async function GET() {
       status: 'pending',
       error: null as string | null,
     },
+    actionRequired: !smtpUser || !smtpPass ? [
+      '1. Open your project on vercel.com',
+      '2. Go to Settings -> Environment Variables',
+      '3. Add SMTP_USER with your gmail address (e.g. geraldgchibanda6025@gmail.com)',
+      '4. Add SMTP_PASS with your 16-character Gmail App Password',
+      '5. Click Save, then go to Deployments and click REDEPLOY (required for new variables to take effect!)'
+    ] : null,
   }
 
   if (smtpUser && smtpPass) {
